@@ -1,5 +1,8 @@
 {
   "dependencies": {
-    "windows-shortcuts": "^0.1.6"
+    "discord-rpc": "^4.0.1",
+    "node-fetch": "^2.6.5",
+    "windows-shortcuts": "^0.1.6",
+    "ws": "^8.2.3"
   }
 }

@@ -14,12 +14,13 @@ if(fs.existsSync(startMenu)) {
         // This isn't crossplatform.
 
         console.log("Patching windows shortcut.")
+
         windowsShortcuts.query(path.join(discordStartMenu, "Discord.lnk"), (err, data) => {
             if(err) throw err;
         
             console.log("Discord directory found at " + data.workingDir);
             console.log(`Previous target: ${data.target} ${data.args}`)
-            
+
             windowsShortcuts.edit(path.join(discordStartMenu, "Discord.lnk"), {
                 target: path.join(data.workingDir, "Discord.exe"),
                 args: "--remote-debugging-port=2020"
@@ -27,8 +28,31 @@ if(fs.existsSync(startMenu)) {
                 if(err) {
                     console.log("Couldn't patch shortcut!")
                 } else {
-                    console.log("Patched shortcut!")
+                    console.clear();
+                    console.log("Patched: shortcut.")
+                    console.log("Patching index.js")
+                    const indexJsPath = path.join(data.workingDir, "modules/discord_desktop_core-1/discord_desktop_core/index.js")
+                    if(fs.existsSync(indexJsPath)) {
+                        const indexJs = fs.readFileSync(indexJsPath).toString();
+                        console.log("Index.js of desktop_core found! Patching.")
 
+                        if(indexJs.includes("// Installed by")) {
+                            console.log("index.js seems to be patched already. " + indexJsPath)
+                        } else {
+                            
+                            fs.appendFileSync(indexJsPath, `
+                                // Installed by Computer (github.com/yourfriendoss/computer)
+                                const { exec } = require('child_process');
+                                const prcs = exec("node ${path.resolve("client.js").replace(/\\/g, `\\\\`)}")
+								prcs.stdout.pipe(process.stdout)
+								prcs.stderr.pipe(process.stderr)
+                            `)
+                            console.log(path.join(__dirname, "client.js"))
+                            console.log("Injected client code! You can restart/start your discord now.")
+                        }
+                    } else {
+                        console.log("Couldn't find index.js at " + indexJsPath)
+                    }
                 }
             })
         })
