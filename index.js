@@ -11,11 +11,29 @@ if(fs.existsSync(startMenu)) {
     if(fs.existsSync(discordStartMenu)) {
         fs.copyFileSync(path.join(discordStartMenu, "Discord.lnk"), path.join(discordStartMenu, "old_Discord.lnk"))
         
-        // This isn't system agnostic. Sadly.
-        // TODO: Query and get information.
-        //windowsShortcuts.query(path.join(discordStartMenu, "Discord.lnk"), console.log)
+        // This isn't crossplatform.
+
+        console.log("Patching windows shortcut.")
+        windowsShortcuts.query(path.join(discordStartMenu, "Discord.lnk"), (err, data) => {
+            if(err) throw err;
+        
+            console.log("Discord directory found at " + data.workingDir);
+            console.log(`Previous target: ${data.target} ${data.args}`)
+            
+            windowsShortcuts.edit(path.join(discordStartMenu, "Discord.lnk"), {
+                target: path.join(data.workingDir, "Discord.exe"),
+                args: "--remote-debugging-port=2020"
+            }, err => {
+                if(err) {
+                    console.log("Couldn't patch shortcut!")
+                } else {
+                    console.log("Patched shortcut!")
+
+                }
+            })
+        })
         /*
-        null {
+       {
   expanded: {
     target: 'C:\\Users\\pirdi\\AppData\\Local\\Discord\\Update.exe',
     args: '--processStart Discord.exe',
@@ -31,15 +49,7 @@ if(fs.existsSync(startMenu)) {
   hotkey: 0,
   desc: 'Discord - https://discord.com'
 }*/
-        windowsShortcuts.edit(path.join(discordStartMenu, "Discord.lnk"), {
 
-        }, err => {
-            if(err) {
-                console.log("Couldn't edit shortcut! RIP.")
-            } else {
-                console.log("Sucesfully installed Computer!")
-            }
-        })
     } else {
         console.log("Couldn't find DiscordStartMenu folder. Something is wrong.");
         console.log("-> " + discordStartMenu)
